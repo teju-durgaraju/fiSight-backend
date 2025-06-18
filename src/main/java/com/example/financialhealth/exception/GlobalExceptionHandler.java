@@ -25,6 +25,18 @@ public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    @ExceptionHandler(GoalNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleGoalNotFoundException(GoalNotFoundException ex, WebRequest request) {
+        log.warn("Goal not found: {}", ex.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.NOT_FOUND.value(), // 404 Not Found
+                "Not Found",
+                ex.getMessage(),
+                ((ServletWebRequest)request).getRequest().getRequestURI());
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    }
+
     @ExceptionHandler(DuplicateBudgetException.class)
     public ResponseEntity<ErrorResponse> handleDuplicateBudgetException(DuplicateBudgetException ex, WebRequest request) {
         log.warn("Duplicate budget entry: {}", ex.getMessage());
