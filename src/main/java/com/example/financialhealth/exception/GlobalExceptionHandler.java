@@ -25,6 +25,30 @@ public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    @ExceptionHandler(DuplicateBudgetException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateBudgetException(DuplicateBudgetException ex, WebRequest request) {
+        log.warn("Duplicate budget entry: {}", ex.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.CONFLICT.value(), // 409 Conflict
+                "Conflict",
+                ex.getMessage(),
+                ((ServletWebRequest)request).getRequest().getRequestURI());
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(BudgetNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleBudgetNotFoundException(BudgetNotFoundException ex, WebRequest request) {
+        log.warn("Budget not found: {}", ex.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.NOT_FOUND.value(), // 404 Not Found
+                "Not Found",
+                ex.getMessage(),
+                ((ServletWebRequest)request).getRequest().getRequestURI());
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    }
+
     @ExceptionHandler(TransactionNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleTransactionNotFoundException(TransactionNotFoundException ex, WebRequest request) {
         log.warn("Transaction not found: {}", ex.getMessage());

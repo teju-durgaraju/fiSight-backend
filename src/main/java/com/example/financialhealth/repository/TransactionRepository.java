@@ -23,4 +23,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 
     Optional<Transaction> findByIdAndUser(Long id, User user);
 
+    List<Transaction> findByUserAndCategoryIgnoreCaseAndTypeAndTransactionDateBetween(
+            User user, String category, TransactionType type, LocalDate startDate, LocalDate endDate
+    );
 }
