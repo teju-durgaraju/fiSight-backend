@@ -3,13 +3,16 @@ package com.example.financialhealth.service;
 import com.example.financialhealth.dto.BudgetRequestDto;
 import com.example.financialhealth.dto.BudgetResponseDto;
 import com.example.financialhealth.exception.BudgetNotFoundException;
+import com.example.financialhealth.exception.CategoryNotFoundException; // Added
 import com.example.financialhealth.exception.DuplicateBudgetException;
 import com.example.financialhealth.exception.UserNotFoundException;
 import com.example.financialhealth.model.Budget;
+import com.example.financialhealth.model.Category; // Added
 import com.example.financialhealth.model.Transaction;
 import com.example.financialhealth.model.User;
 import com.example.financialhealth.model.enums.TransactionType;
 import com.example.financialhealth.repository.BudgetRepository;
+import com.example.financialhealth.repository.CategoryRepository; // Added
 import com.example.financialhealth.repository.TransactionRepository;
 import com.example.financialhealth.repository.UserRepository;
 import org.slf4j.Logger;
@@ -32,13 +35,16 @@ public class BudgetServiceImpl implements BudgetService {
     private final BudgetRepository budgetRepository;
     private final UserRepository userRepository;
     private final TransactionRepository transactionRepository;
+    private final CategoryRepository categoryRepository; // Added
 
     public BudgetServiceImpl(BudgetRepository budgetRepository,
                              UserRepository userRepository,
-                             TransactionRepository transactionRepository) {
+                             TransactionRepository transactionRepository,
+                             CategoryRepository categoryRepository) { // Added
         this.budgetRepository = budgetRepository;
         this.userRepository = userRepository;
         this.transactionRepository = transactionRepository;
+        this.categoryRepository = categoryRepository; // Added
     }
 
     @Override
@@ -46,21 +52,23 @@ public class BudgetServiceImpl implements BudgetService {
     public BudgetResponseDto createBudget(Long userId, BudgetRequestDto requestDto) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
+        Category category = categoryRepository.findById(requestDto.getCategoryId())
+                .orElseThrow(() -> new CategoryNotFoundException("Category not found with ID: " + requestDto.getCategoryId()));
 
-        budgetRepository.findByUserAndCategoryAndMonth(user, requestDto.getCategory(), requestDto.getMonth())
+        budgetRepository.findByUserAndCategoryAndMonth(user, category, requestDto.getMonth())
                 .ifPresent(existingBudget -> {
                     throw new DuplicateBudgetException(
                             "Budget already exists for user " + userId +
-                                    ", category '" + requestDto.getCategory() +
+                                    ", category '" + category.getName() + // Use category name for message
                                     "', and month '" + requestDto.getMonth() + "'."
                     );
                 });
 
         Budget budget = new Budget();
-        mapToEntity(requestDto, user, budget);
+        mapToEntity(requestDto, user, category, budget); // Pass Category object
         Budget savedBudget = budgetRepository.save(budget);
         logger.info("Created budget with id {} for user {}, category '{}', month '{}'",
-                savedBudget.getId(), userId, savedBudget.getCategory(), savedBudget.getMonth());
+                savedBudget.getId(), userId, savedBudget.getCategory().getName(), savedBudget.getMonth());
         return mapToDto(savedBudget);
     }
 
@@ -92,32 +100,27 @@ public class BudgetServiceImpl implements BudgetService {
     @Transactional
     public BudgetResponseDto updateBudget(Long userId, Long budgetId, BudgetRequestDto requestDto) {
         Budget budget = findBudgetByIdAndUserOrThrow(budgetId, userId);
+        User user = budget.getUser(); // User must remain the same for a given budget item
 
-        // Check if category or month is being changed, and if so, ensure it doesn't create a duplicate
-        if (!budget.getCategory().equals(requestDto.getCategory()) || !budget.getMonth().equals(requestDto.getMonth())) {
-            User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
-            budgetRepository.findByUserAndCategoryAndMonth(user, requestDto.getCategory(), requestDto.getMonth())
-                .ifPresent(existingBudget -> {
-                    if (!existingBudget.getId().equals(budgetId)) { // If it's a different budget item
-                         throw new DuplicateBudgetException(
-                            "Updating this budget would create a duplicate for category '" + requestDto.getCategory() +
-                            "' and month '" + requestDto.getMonth() + "' which already exists."
-                        );
-                    }
-                });
+        Category category = budget.getCategory();
+        if (requestDto.getCategoryId() != null && !requestDto.getCategoryId().equals(category.getId())) {
+            category = categoryRepository.findById(requestDto.getCategoryId())
+                    .orElseThrow(() -> new CategoryNotFoundException("Category not found with ID: " + requestDto.getCategoryId()));
         }
 
-        // For this iteration, primarily updating amounts. Category/Month updates are tricky due to unique constraints.
-        // The prompt said: "Do not update category/month here to avoid complex uniqueness check for this iteration."
-        // So, I will only update allocatedAmount and totalMonthlyBudgetGoal based on the prompt.
-        // However, the DTO allows changing category/month, so a real app would need to decide:
-        // 1. Disallow category/month changes on update.
-        // 2. Allow them but perform the complex uniqueness check (as partially done above).
-        // For now, as per prompt, let's assume category/month from DTO are ignored if they differ,
-        // or we only update amounts. For safety, I'll update all fields from DTO but the check above handles conflicts.
+        // Check for duplicate with new category and month before setting
+        // The month is also part of the DTO, so use requestDto.getMonth()
+        final Category finalCategory = category; // for lambda
+        budgetRepository.findByUserAndCategoryAndMonth(user, finalCategory, requestDto.getMonth())
+            .filter(existingBudget -> !existingBudget.getId().equals(budgetId)) // ensure it's not the same budget item
+            .ifPresent(existingBudget -> {
+                throw new DuplicateBudgetException(
+                        "A budget for category '" + finalCategory.getName() +
+                        "' and month '" + requestDto.getMonth() + "' already exists."
+                );
+            });
 
-        mapToEntity(requestDto, budget.getUser(), budget); // User remains the same
+        mapToEntity(requestDto, user, finalCategory, budget); // Pass updated category
 
         Budget updatedBudget = budgetRepository.save(budget);
         logger.info("Updated budget with id {} for user {}", updatedBudget.getId(), userId);
@@ -134,9 +137,17 @@ public class BudgetServiceImpl implements BudgetService {
 
     @Override
     @Transactional(readOnly = true)
-    public BigDecimal calculateCurrentSpending(Long userId, String category, String month) {
+    public BigDecimal calculateCurrentSpending(Long userId, String categoryName, String month) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
+
+        Category category = categoryRepository.findByNameIgnoreCase(categoryName)
+                .orElse(null);
+
+        if (category == null) {
+            logger.warn("Category '{}' not found for spending calculation for user ID {}. Returning 0 spending.", categoryName, userId);
+            return BigDecimal.ZERO;
+        }
 
         YearMonth yearMonth;
         try {
@@ -148,7 +159,8 @@ public class BudgetServiceImpl implements BudgetService {
         LocalDate startDate = yearMonth.atDay(1);
         LocalDate endDate = yearMonth.atEndOfMonth();
 
-        List<Transaction> transactions = transactionRepository.findByUserAndCategoryIgnoreCaseAndTypeAndTransactionDateBetween(
+        // Use the repository method that accepts a Category object
+        List<Transaction> transactions = transactionRepository.findByUserAndCategoryAndTypeAndTransactionDateBetween(
                 user, category, TransactionType.EXPENSE, startDate, endDate
         );
 
@@ -171,7 +183,7 @@ public class BudgetServiceImpl implements BudgetService {
         return new BudgetResponseDto(
                 budget.getId(),
                 budget.getUser().getId(),
-                budget.getCategory(),
+                budget.getCategory().getName(), // Get name from Category entity
                 budget.getAllocatedAmount(),
                 budget.getMonth(),
                 budget.getTotalMonthlyBudgetGoal(),
@@ -180,9 +192,10 @@ public class BudgetServiceImpl implements BudgetService {
         );
     }
 
-    private void mapToEntity(BudgetRequestDto dto, User user, Budget budget) {
+    // Updated signature to include Category
+    private void mapToEntity(BudgetRequestDto dto, User user, Category category, Budget budget) {
         budget.setUser(user);
-        budget.setCategory(dto.getCategory());
+        budget.setCategory(category); // Set Category entity
         budget.setAllocatedAmount(dto.getAllocatedAmount());
         budget.setMonth(dto.getMonth());
         budget.setTotalMonthlyBudgetGoal(dto.getTotalMonthlyBudgetGoal());

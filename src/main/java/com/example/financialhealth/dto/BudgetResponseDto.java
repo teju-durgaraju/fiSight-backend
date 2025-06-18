@@ -7,7 +7,7 @@ public class BudgetResponseDto {
 
     private Long id;
     private Long userId;
-    private String category;
+    private String categoryName; // Changed from category to categoryName
     private BigDecimal allocatedAmount;
     private String month; // YYYY-MM format
     private BigDecimal totalMonthlyBudgetGoal;
@@ -17,10 +17,10 @@ public class BudgetResponseDto {
     public BudgetResponseDto() {
     }
 
-    public BudgetResponseDto(Long id, Long userId, String category, BigDecimal allocatedAmount, String month, BigDecimal totalMonthlyBudgetGoal, Timestamp createdAt, Timestamp updatedAt) {
+    public BudgetResponseDto(Long id, Long userId, String categoryName, BigDecimal allocatedAmount, String month, BigDecimal totalMonthlyBudgetGoal, Timestamp createdAt, Timestamp updatedAt) {
         this.id = id;
         this.userId = userId;
-        this.category = category;
+        this.categoryName = categoryName; // Changed
         this.allocatedAmount = allocatedAmount;
         this.month = month;
         this.totalMonthlyBudgetGoal = totalMonthlyBudgetGoal;
@@ -45,12 +45,12 @@ public class BudgetResponseDto {
         this.userId = userId;
     }
 
-    public String getCategory() {
-        return category;
+    public String getCategoryName() {
+        return categoryName;
     }
 
-    public void setCategory(String category) {
-        this.category = category;
+    public void setCategoryName(String categoryName) {
+        this.categoryName = categoryName;
     }
 
     public BigDecimal getAllocatedAmount() {

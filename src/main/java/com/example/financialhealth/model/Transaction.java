@@ -28,8 +28,9 @@ public class Transaction {
     @Column(nullable = false, precision = 19, scale = 4)
     private BigDecimal amount;
 
-    @Column(nullable = false, length = 100)
-    private String category;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "category_id", nullable = false)
+    private Category category;
 
     @Column(nullable = false)
     private LocalDate transactionDate;
@@ -45,7 +46,8 @@ public class Transaction {
     public Transaction() {
     }
 
-    public Transaction(User user, TransactionType type, BigDecimal amount, String category, LocalDate transactionDate, String description) {
+    // Updated constructor
+    public Transaction(User user, TransactionType type, BigDecimal amount, Category category, LocalDate transactionDate, String description) {
         this.user = user;
         this.type = type;
         this.amount = amount;

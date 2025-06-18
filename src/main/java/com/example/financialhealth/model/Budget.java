@@ -10,7 +10,7 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "budgets", uniqueConstraints = {
-    @UniqueConstraint(columnNames = {"user_id", "category", "month"})
+    @UniqueConstraint(columnNames = {"user_id", "category_id", "month"})
 })
 public class Budget {
 
@@ -22,8 +22,9 @@ public class Budget {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(nullable = false, length = 100)
-    private String category;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "category_id", nullable = false)
+    private Category category;
 
     @Column(name = "allocated_amount", nullable = false, precision = 19, scale = 4)
     private BigDecimal allocatedAmount;
@@ -46,7 +47,7 @@ public class Budget {
     public Budget() {
     }
 
-    public Budget(User user, String category, BigDecimal allocatedAmount, String month, BigDecimal totalMonthlyBudgetGoal) {
+    public Budget(User user, Category category, BigDecimal allocatedAmount, String month, BigDecimal totalMonthlyBudgetGoal) {
         this.user = user;
         this.category = category;
         this.allocatedAmount = allocatedAmount;

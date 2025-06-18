@@ -25,9 +25,8 @@ public class TransactionRequestDto {
     @DecimalMin(value = "0.01", message = "Amount must be positive and greater than 0.")
     private BigDecimal amount;
 
-    @NotBlank(message = "Category cannot be blank.")
-    @Size(max = 100, message = "Category cannot exceed 100 characters.")
-    private String category;
+    @NotNull(message = "Category ID cannot be null.")
+    private Long categoryId;
 
     @NotNull(message = "Transaction date cannot be null.")
     @PastOrPresent(message = "Transaction date cannot be in the future.")
@@ -39,10 +38,10 @@ public class TransactionRequestDto {
     public TransactionRequestDto() {
     }
 
-    public TransactionRequestDto(String type, BigDecimal amount, String category, LocalDate transactionDate, String description) {
+    public TransactionRequestDto(String type, BigDecimal amount, Long categoryId, LocalDate transactionDate, String description) {
         this.type = type;
         this.amount = amount;
-        this.category = category;
+        this.categoryId = categoryId;
         this.transactionDate = transactionDate;
         this.description = description;
     }
@@ -67,8 +66,14 @@ public class TransactionRequestDto {
         return category;
     }
 
-    public void setCategory(String category) {
-        this.category = category;
+    // Removed getCategory() and setCategory(String)
+
+    public Long getCategoryId() {
+        return categoryId;
+    }
+
+    public void setCategoryId(Long categoryId) {
+        this.categoryId = categoryId;
     }
 
     public LocalDate getTransactionDate() {

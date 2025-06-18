@@ -2,11 +2,14 @@ package com.example.financialhealth.service;
 
 import com.example.financialhealth.dto.TransactionRequestDto;
 import com.example.financialhealth.dto.TransactionResponseDto;
+import com.example.financialhealth.exception.CategoryNotFoundException; // Added
 import com.example.financialhealth.exception.TransactionNotFoundException;
 import com.example.financialhealth.exception.UserNotFoundException;
+import com.example.financialhealth.model.Category; // Added
 import com.example.financialhealth.model.Transaction;
 import com.example.financialhealth.model.User;
 import com.example.financialhealth.model.enums.TransactionType;
+import com.example.financialhealth.repository.CategoryRepository; // Added
 import com.example.financialhealth.repository.TransactionRepository;
 import com.example.financialhealth.repository.UserRepository;
 import org.slf4j.Logger;
@@ -26,10 +29,14 @@ public class TransactionServiceImpl implements TransactionService {
 
     private final TransactionRepository transactionRepository;
     private final UserRepository userRepository;
+    private final CategoryRepository categoryRepository; // Added
 
-    public TransactionServiceImpl(TransactionRepository transactionRepository, UserRepository userRepository) {
+    public TransactionServiceImpl(TransactionRepository transactionRepository,
+                                UserRepository userRepository,
+                                CategoryRepository categoryRepository) { // Added
         this.transactionRepository = transactionRepository;
         this.userRepository = userRepository;
+        this.categoryRepository = categoryRepository; // Added
     }
 
     @Override
@@ -37,8 +44,10 @@ public class TransactionServiceImpl implements TransactionService {
     public TransactionResponseDto createTransaction(Long userId, TransactionRequestDto requestDto) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
+        Category category = categoryRepository.findById(requestDto.getCategoryId())
+                .orElseThrow(() -> new CategoryNotFoundException("Category not found with ID: " + requestDto.getCategoryId()));
         Transaction transaction = new Transaction();
-        mapToEntity(requestDto, user, transaction);
+        mapToEntity(requestDto, user, category, transaction); // Pass category
         Transaction savedTransaction = transactionRepository.save(transaction);
         logger.info("Created transaction with id {} for user {}", savedTransaction.getId(), userId);
         return mapToDto(savedTransaction);
@@ -50,56 +59,28 @@ public class TransactionServiceImpl implements TransactionService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
 
-        List<Transaction> transactions;
+        // Resolve category name to Category entity for repository querying if category filter is present
+        Optional<Category> categoryEntityOpt = categoryFilter.flatMap(name -> categoryRepository.findByNameIgnoreCase(name));
 
-        if (startDateFilter.isPresent() && endDateFilter.isPresent()) {
-            transactions = transactionRepository.findByUserAndTransactionDateBetween(user, startDateFilter.get(), endDateFilter.get());
-        } else if (typeFilter.isPresent()) {
-            // This will fetch all transactions of a certain type, then other filters can be applied via stream
-            transactions = transactionRepository.findByUserAndType(user, typeFilter.get());
-        } else if (categoryFilter.isPresent()) {
-            // This will fetch all transactions of a certain category, then other filters can be applied via stream
-            transactions = transactionRepository.findByUserAndCategoryIgnoreCase(user, categoryFilter.get());
-        }
-        else {
-            transactions = transactionRepository.findByUserOrderByTransactionDateDesc(user);
+        // If category name is provided but not found, return empty list as no transactions can match.
+        if (categoryFilter.isPresent() && !categoryEntityOpt.isPresent()) {
+            return Collections.emptyList();
         }
 
-        // Apply remaining filters using streams if they were not the primary query path
-        if (startDateFilter.isPresent() && endDateFilter.isPresent()) {
-            // If date range was primary, other filters still need to be applied if present
-            if (typeFilter.isPresent()) {
-                transactions = transactions.stream().filter(t -> t.getType() == typeFilter.get()).collect(Collectors.toList());
-            }
-            if (categoryFilter.isPresent()) {
-                transactions = transactions.stream().filter(t -> t.getCategory().equalsIgnoreCase(categoryFilter.get())).collect(Collectors.toList());
-            }
-        } else { // If date range was NOT primary
-            if (typeFilter.isPresent() && !(transactions.isEmpty() && !transactionRepository.findByUserAndType(user, typeFilter.get()).isEmpty() )) {
-                 // Apply if not already the primary filter
-                 // Small correction: the condition above is a bit complex, simplifying stream filter
-            }
-            if (categoryFilter.isPresent() && !(transactions.isEmpty() && !transactionRepository.findByUserAndCategoryIgnoreCase(user, categoryFilter.get()).isEmpty())) {
-                // Apply if not already the primary filter
-            }
-        }
-
-        // Refined filtering logic: Fetch a base set then stream filter for additional criteria
-        // For simplicity in this iteration, the above prioritizes one repo call.
-        // A more robust version would fetch all by user, then stream, or use Specifications/QueryDSL.
-        // For now, I'll stick to the single main filter path and then stream the rest.
-
-        final List<Transaction> initialTransactions = transactionRepository.findByUserOrderByTransactionDateDesc(user);
+        // Simplified logic: Fetch all by user, then filter.
+        // More optimized would be to use specific repo methods if only one filter is present,
+        // or Specifications/QueryDSL for multiple filters.
+        // For this refactoring, focusing on making category work with existing stream approach.
+        List<Transaction> initialTransactions = transactionRepository.findByUserOrderByTransactionDateDesc(user);
 
         return initialTransactions.stream()
-            .filter(t -> typeFilter.map(type -> t.getType() == type).orElse(true))
-            .filter(t -> categoryFilter.map(cat -> t.getCategory().equalsIgnoreCase(cat)).orElse(true))
-            .filter(t -> startDateFilter.map(sd -> !t.getTransactionDate().isBefore(sd)).orElse(true))
-            .filter(t -> endDateFilter.map(ed -> !t.getTransactionDate().isAfter(ed)).orElse(true))
-            .map(this::mapToDto)
-            .collect(Collectors.toList());
+                .filter(t -> typeFilter.map(type -> t.getType() == type).orElse(true))
+                .filter(t -> categoryEntityOpt.map(catEntity -> t.getCategory().equals(catEntity)).orElse(true)) // Filter by Category object
+                .filter(t -> startDateFilter.map(sd -> !t.getTransactionDate().isBefore(sd)).orElse(true))
+                .filter(t -> endDateFilter.map(ed -> !t.getTransactionDate().isAfter(ed)).orElse(true))
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
     }
-
 
     @Override
     @Transactional(readOnly = true)
@@ -114,7 +95,15 @@ public class TransactionServiceImpl implements TransactionService {
     @Transactional
     public TransactionResponseDto updateTransaction(Long userId, Long transactionId, TransactionRequestDto requestDto) {
         Transaction transaction = findTransactionByIdAndUserOrThrow(transactionId, userId);
-        mapToEntity(requestDto, transaction.getUser(), transaction); // User remains the same
+        User user = transaction.getUser(); // User remains the same
+
+        Category category = transaction.getCategory(); // Keep existing category by default
+        if (requestDto.getCategoryId() != null && !requestDto.getCategoryId().equals(category.getId())) {
+            category = categoryRepository.findById(requestDto.getCategoryId())
+                    .orElseThrow(() -> new CategoryNotFoundException("Category not found with ID: " + requestDto.getCategoryId()));
+        }
+
+        mapToEntity(requestDto, user, category, transaction); // Pass category
         Transaction updatedTransaction = transactionRepository.save(transaction);
         logger.info("Updated transaction with id {} for user {}", updatedTransaction.getId(), userId);
         return mapToDto(updatedTransaction);
@@ -144,22 +133,23 @@ public class TransactionServiceImpl implements TransactionService {
                 transaction.getUser().getId(),
                 transaction.getType(),
                 transaction.getAmount(),
-                transaction.getCategory(),
+                transaction.getCategory().getName(), // Get name from Category entity
                 transaction.getTransactionDate(),
                 transaction.getDescription(),
                 transaction.getCreatedAt()
         );
     }
 
-    private void mapToEntity(TransactionRequestDto dto, User user, Transaction transaction) {
+    // Updated signature to include Category
+    private void mapToEntity(TransactionRequestDto dto, User user, Category category, Transaction transaction) {
         transaction.setUser(user);
+        transaction.setCategory(category); // Set Category entity
         try {
             transaction.setType(TransactionType.valueOf(dto.getType().toUpperCase()));
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Invalid transaction type: " + dto.getType() + ". Must be INCOME or EXPENSE.", e);
         }
         transaction.setAmount(dto.getAmount());
-        transaction.setCategory(dto.getCategory());
         transaction.setTransactionDate(dto.getTransactionDate());
         transaction.setDescription(dto.getDescription());
         // createdAt is handled by @CreationTimestamp for new entities

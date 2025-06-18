@@ -16,7 +16,7 @@ public class TransactionResponseDto {
     private Long userId;
     private TransactionType type; // Using enum directly for better type safety on response
     private BigDecimal amount;
-    private String category;
+    private String categoryName; // Changed from category to categoryName
     private LocalDate transactionDate;
     private String description;
     private Timestamp createdAt;
@@ -24,12 +24,12 @@ public class TransactionResponseDto {
     public TransactionResponseDto() {
     }
 
-    public TransactionResponseDto(Long id, Long userId, TransactionType type, BigDecimal amount, String category, LocalDate transactionDate, String description, Timestamp createdAt) {
+    public TransactionResponseDto(Long id, Long userId, TransactionType type, BigDecimal amount, String categoryName, LocalDate transactionDate, String description, Timestamp createdAt) {
         this.id = id;
         this.userId = userId;
         this.type = type;
         this.amount = amount;
-        this.category = category;
+        this.categoryName = categoryName; // Changed from category to categoryName
         this.transactionDate = transactionDate;
         this.description = description;
         this.createdAt = createdAt;
@@ -68,12 +68,12 @@ public class TransactionResponseDto {
         this.amount = amount;
     }
 
-    public String getCategory() {
-        return category;
+    public String getCategoryName() { // Changed from getCategory to getCategoryName
+        return categoryName;
     }
 
-    public void setCategory(String category) {
-        this.category = category;
+    public void setCategoryName(String categoryName) { // Changed from setCategory to setCategoryName
+        this.categoryName = categoryName;
     }
 
     public LocalDate getTransactionDate() {

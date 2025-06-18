@@ -1,6 +1,7 @@
 package com.example.financialhealth.repository;
 
 import com.example.financialhealth.model.Budget;
+import com.example.financialhealth.model.Category; // Added import
 import com.example.financialhealth.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -15,7 +16,7 @@ public interface BudgetRepository extends JpaRepository<Budget, Long> {
 
     List<Budget> findByUserAndMonthOrderByCategoryAsc(User user, String month); // month in "YYYY-MM" format
 
-    Optional<Budget> findByUserAndCategoryAndMonth(User user, String category, String month);
+    Optional<Budget> findByUserAndCategoryAndMonth(User user, Category category, String month); // Changed String category
 
     Optional<Budget> findByIdAndUser(Long id, User user);
 

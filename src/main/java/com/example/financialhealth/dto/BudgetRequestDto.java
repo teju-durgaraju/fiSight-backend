@@ -9,9 +9,8 @@ import java.math.BigDecimal;
 
 public class BudgetRequestDto {
 
-    @NotBlank(message = "Category cannot be blank.")
-    @Size(max = 100, message = "Category cannot exceed 100 characters.")
-    private String category;
+    @NotNull(message = "Category ID cannot be null.")
+    private Long categoryId;
 
     @NotNull(message = "Allocated amount cannot be null.")
     @DecimalMin(value = "0.00", message = "Allocated amount must be zero or positive.")
@@ -27,20 +26,20 @@ public class BudgetRequestDto {
     public BudgetRequestDto() {
     }
 
-    public BudgetRequestDto(String category, BigDecimal allocatedAmount, String month, BigDecimal totalMonthlyBudgetGoal) {
-        this.category = category;
+    public BudgetRequestDto(Long categoryId, BigDecimal allocatedAmount, String month, BigDecimal totalMonthlyBudgetGoal) {
+        this.categoryId = categoryId;
         this.allocatedAmount = allocatedAmount;
         this.month = month;
         this.totalMonthlyBudgetGoal = totalMonthlyBudgetGoal;
     }
 
     // Getters and Setters
-    public String getCategory() {
-        return category;
+    public Long getCategoryId() {
+        return categoryId;
     }
 
-    public void setCategory(String category) {
-        this.category = category;
+    public void setCategoryId(Long categoryId) {
+        this.categoryId = categoryId;
     }
 
     public BigDecimal getAllocatedAmount() {
