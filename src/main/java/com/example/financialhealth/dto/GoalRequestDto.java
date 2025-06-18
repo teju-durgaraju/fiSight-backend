@@ -7,8 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-
-public class GoalRequestDto {
+import io.swagger.v3.oas.annotations.media.Schema; // Added
 
     @NotBlank(message = "Goal name cannot be blank.")
     @Size(max = 255, message = "Goal name cannot exceed 255 characters.")
@@ -22,6 +21,7 @@ public class GoalRequestDto {
     private BigDecimal currentAmount; // Optional in request, service will default to 0 if null for new goals
 
     @FutureOrPresent(message = "Target date must be in the present or future.")
+    @Schema(description = "Target date to achieve the goal. Must be in the present or future.", example = "2025-12-31") // Added
     private LocalDate targetDate; // Optional
 
     public GoalRequestDto() {

@@ -5,6 +5,8 @@ import com.example.financialhealth.dto.insights.InsightResponseDto;
 import com.example.financialhealth.dto.insights.WeeklySummaryResponseDto;
 import com.example.financialhealth.model.User;
 import com.example.financialhealth.service.FinancialInsightService;
+import io.swagger.v3.oas.annotations.Operation; // Added
+import io.swagger.v3.oas.annotations.tags.Tag; // Added
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +22,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.Optional;
 
+@Tag(name = "Financial Insights", description = "Endpoints for financial summaries and AI-powered advice.") // Added
 @RestController
 @RequestMapping("/api/v1/insights")
 public class FinancialInsightController {
@@ -39,6 +42,7 @@ public class FinancialInsightController {
         throw new InsufficientAuthenticationException("User details not found or not of expected type. Ensure you are authenticated correctly.");
     }
 
+    @Operation(summary = "Get weekly financial summary", description = "Retrieves a summary of income, expenses, and net savings for a specified week (defaults to current week).") // Added
     @GetMapping("/weekly")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<WeeklySummaryResponseDto> getWeeklyFinancialSummary(
@@ -87,6 +91,7 @@ public class FinancialInsightController {
         return ResponseEntity.ok(summary);
     }
 
+    @Operation(summary = "Generate AI-powered financial insight", description = "Submits a user query along with their financial context to an LLM to receive personalized advice.") // Added
     @PostMapping("/generate")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<InsightResponseDto> generateInsight(

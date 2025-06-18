@@ -9,6 +9,8 @@ import com.example.financialhealth.repository.RoleRepository;
 import com.example.financialhealth.repository.UserRepository;
 import com.example.financialhealth.security.JwtUtil;
 import com.example.financialhealth.service.CustomUserDetailsService;
+import io.swagger.v3.oas.annotations.Operation; // Added
+import io.swagger.v3.oas.annotations.tags.Tag; // Added
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -25,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collections;
 
+@Tag(name = "Authentication", description = "Endpoints for user registration and login.") // Added
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -50,6 +53,7 @@ public class AuthController {
         this.userDetailsService = userDetailsService;
     }
 
+    @Operation(summary = "Register a new user", description = "Creates a new user account.") // Added
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody RegisterRequest registerRequest) {
         if (userRepository.findByUsername(registerRequest.getUsername()).isPresent()) {
@@ -69,6 +73,7 @@ public class AuthController {
         return ResponseEntity.ok("User registered successfully!");
     }
 
+    @Operation(summary = "Authenticate a user", description = "Authenticates a user with username and password, and returns a JWT upon success.") // Added
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
         try {

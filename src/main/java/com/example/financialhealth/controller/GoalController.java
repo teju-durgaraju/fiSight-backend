@@ -4,6 +4,8 @@ import com.example.financialhealth.dto.GoalRequestDto;
 import com.example.financialhealth.dto.GoalResponseDto;
 import com.example.financialhealth.model.User;
 import com.example.financialhealth.service.GoalService;
+import io.swagger.v3.oas.annotations.Operation; // Added
+import io.swagger.v3.oas.annotations.tags.Tag; // Added
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Tag(name = "Financial Goals", description = "Manage financial goals.") // Added
 @RestController
 @RequestMapping("/api/v1/goals")
 public class GoalController {
@@ -60,6 +63,7 @@ public class GoalController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    @Operation(summary = "Create a new financial goal", description = "Creates a new financial goal for the authenticated user.") // Added
     @PostMapping
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<GoalResponseDto> createGoal(

@@ -5,6 +5,8 @@ import com.example.financialhealth.dto.TransactionResponseDto;
 import com.example.financialhealth.model.User;
 import com.example.financialhealth.model.enums.TransactionType;
 import com.example.financialhealth.service.TransactionService;
+import io.swagger.v3.oas.annotations.Operation; // Added
+import io.swagger.v3.oas.annotations.tags.Tag; // Added
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +23,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+@Tag(name = "Transactions", description = "Manage financial transactions (income and expenses).") // Added
 @RestController
 @RequestMapping("/api/v1/transactions")
 public class TransactionController {
@@ -86,6 +89,7 @@ public class TransactionController {
                 .orElseGet(() -> ResponseEntity.notFound().build()); // Should not be reached if service throws
     }
 
+    @Operation(summary = "Create a new transaction", description = "Records a new income or expense transaction for the authenticated user.") // Added
     @PostMapping
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<TransactionResponseDto> createTransaction(

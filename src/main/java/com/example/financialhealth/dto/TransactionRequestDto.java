@@ -7,6 +7,7 @@ import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import io.swagger.v3.oas.annotations.media.Schema; // Added
 
 // For validation annotations (e.g., @NotNull, @NotBlank, @Size, @Positive, @PastOrPresent) to take effect,
 // ensure 'spring-boot-starter-validation' is included in your pom.xml:
@@ -26,6 +27,7 @@ public class TransactionRequestDto {
     private BigDecimal amount;
 
     @NotNull(message = "Category ID cannot be null.")
+    @Schema(description = "ID of the category for this transaction.", example = "1") // Added
     private Long categoryId;
 
     @NotNull(message = "Transaction date cannot be null.")
@@ -62,9 +64,7 @@ public class TransactionRequestDto {
         this.amount = amount;
     }
 
-    public String getCategory() {
-        return category;
-    }
+    // Removed getCategory() leftover method
 
     // Removed getCategory() and setCategory(String)
 

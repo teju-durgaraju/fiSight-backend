@@ -1,10 +1,12 @@
 package com.example.financialhealth.dto.insights;
 
+import io.swagger.v3.oas.annotations.media.Schema; // Added
 import jakarta.validation.constraints.NotBlank;
 
 public class InsightRequestDto {
 
     @NotBlank(message = "User query cannot be blank.")
+    @Schema(description = "User's question or topic for financial advice.", example = "How can I save more money?") // Added
     private String userQuery;
 
     public InsightRequestDto() {

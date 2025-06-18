@@ -4,6 +4,8 @@ import com.example.financialhealth.dto.BudgetRequestDto;
 import com.example.financialhealth.dto.BudgetResponseDto;
 import com.example.financialhealth.model.User;
 import com.example.financialhealth.service.BudgetService;
+import io.swagger.v3.oas.annotations.Operation; // Added
+import io.swagger.v3.oas.annotations.tags.Tag; // Added
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 
+@Tag(name = "Budgets", description = "Manage monthly budgets for spending categories.") // Added
 @RestController
 @RequestMapping("/api/v1/budgets")
 public class BudgetController {
@@ -62,14 +65,15 @@ public class BudgetController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    @Operation(summary = "Create a new budget", description = "Sets a new budget for a specific category and month for the authenticated user.") // Added
     @PostMapping
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<BudgetResponseDto> createBudget(
             @AuthenticationPrincipal UserDetails userDetails,
             @Valid @RequestBody BudgetRequestDto requestDto) {
         User authUser = getAuthenticatedUser(userDetails);
-        logger.info("Creating budget for user {} with category '{}' for month '{}'",
-                authUser.getUsername(), requestDto.getCategory(), requestDto.getMonth());
+        logger.info("Creating budget for user {} with category ID '{}' for month '{}'", // Corrected log
+                authUser.getUsername(), requestDto.getCategoryId(), requestDto.getMonth());
         BudgetResponseDto createdBudget = budgetService.createBudget(authUser.getId(), requestDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdBudget);
     }
