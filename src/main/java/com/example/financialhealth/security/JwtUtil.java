@@ -6,6 +6,9 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -22,10 +25,28 @@ import java.util.stream.Collectors;
 @Component
 public class JwtUtil {
 
-    // IMPORTANT: This is a placeholder secret key.
-    // It MUST be externalized and managed securely in a production environment.
-    private static final String SECRET_KEY = "yourVerySecureSecretKeyWhichShouldBeLongAndComplexAndAtLeast256BitsLongForHS256";
+    private static final Logger logger = LoggerFactory.getLogger(JwtUtil.class);
+
+    private final String secretKeyString;
+    private final Key signingKey;
+
+    // EXPIRATION_TIME_MS can remain a static final long or be configurable too
     private static final long EXPIRATION_TIME_MS = 1000 * 60 * 60 * 10; // 10 hours
+
+    public JwtUtil(@Value("${jwt.secret}") String secretKeyString) {
+        if (secretKeyString == null || secretKeyString.isEmpty() || "DefaultSecretKeyPlaceholder_ChangeThisImmediately_0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".equals(secretKeyString)) {
+            logger.warn("WARNING: JWT Secret Key is using a default placeholder or is not configured. This is insecure and MUST be changed for production.");
+            // Consider throwing an exception in a production profile if the key isn't set properly,
+            // or if the default placeholder is detected.
+            // For example:
+            // if ("DefaultSecretKeyPlaceholder_ChangeThisImmediately_0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".equals(secretKeyString)) {
+            //     throw new IllegalArgumentException("CRITICAL: Default JWT secret key is in use. Application startup aborted for security reasons.");
+            // }
+        }
+        this.secretKeyString = secretKeyString;
+        byte[] keyBytes = this.secretKeyString.getBytes(StandardCharsets.UTF_8);
+        this.signingKey = Keys.hmacShaKeyFor(keyBytes);
+    }
 
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
@@ -83,8 +104,8 @@ public class JwtUtil {
     }
 
     private Key getSigningKey() {
-        byte[] keyBytes = SECRET_KEY.getBytes(StandardCharsets.UTF_8);
-        return Keys.hmacShaKeyFor(keyBytes);
+        // Now returns the pre-initialized signingKey field
+        return signingKey;
     }
 
     public List<String> extractRoles(String token) {
