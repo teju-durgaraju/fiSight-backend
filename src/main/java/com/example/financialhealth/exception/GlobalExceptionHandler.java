@@ -141,6 +141,18 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(ExternalServiceException.class)
+    public ResponseEntity<ErrorResponse> handleExternalServiceException(ExternalServiceException ex, WebRequest request) {
+        log.error("External service error: {} for request {}", ex.getMessage(), ((ServletWebRequest)request).getRequest().getRequestURI(), ex.getCause()); // Log with cause
+        ErrorResponse errorResponse = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.BAD_GATEWAY.value(), // 502 Bad Gateway
+                "External Service Error",
+                "An error occurred while communicating with an external service. Please try again later.", // User-friendly message
+                ((ServletWebRequest)request).getRequest().getRequestURI());
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_GATEWAY);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGlobalException(Exception ex, WebRequest request) {
         log.error("Unexpected error occurred: {} for resource {}", ex.getMessage(), ((ServletWebRequest)request).getRequest().getRequestURI() , ex);
