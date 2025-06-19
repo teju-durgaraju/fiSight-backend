@@ -1,59 +1,37 @@
 package com.example.financialhealth.model;
 
 import jakarta.persistence.*;
+import lombok.*; // Added
+import lombok.EqualsAndHashCode.Include; // Added
 import org.springframework.security.core.GrantedAuthority;
 
-import java.util.Objects;
+// Removed java.util.Objects import as Lombok will handle equals/hashCode
 
+@Getter // Lombok
+@Setter // Lombok
+@NoArgsConstructor // Lombok
+@AllArgsConstructor // Lombok
+@EqualsAndHashCode(onlyExplicitlyIncluded = true) // Lombok
+@ToString // Lombok
 @Entity
 @Table(name = "roles")
 public class Role implements GrantedAuthority {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Include // For Lombok @EqualsAndHashCode
     private Long id;
 
     @Column(unique = true, nullable = false)
     private String name;
 
-    public Role() {
-    }
+    // Manual constructors, getters, setters, equals, hashCode are removed.
 
-    public Role(String name) {
-        this.name = name;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
+    @Override
+    public String getAuthority() { // This is from GrantedAuthority, must be kept.
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    @Override
-    public String getAuthority() {
-        return name;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Role role = (Role) o;
-        return Objects.equals(name, role.name);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(name);
-    }
+    // Lombok's @EqualsAndHashCode and @ToString will be used.
+    // @EqualsAndHashCode.Include on 'id' makes it ID-based.
 }

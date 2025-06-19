@@ -1,16 +1,17 @@
 package com.example.financialhealth.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class LoginResponse {
 
     private String jwtToken;
 
-    public LoginResponse(String jwtToken) {
-        this.jwtToken = jwtToken;
-    }
-
-    public String getJwtToken() {
-        return jwtToken;
-    }
-
-    // No setter, typically constructed once
+    // Manual constructor, getter, and potential setter are removed.
+    // @AllArgsConstructor covers the constructor.
+    // @Data provides getter and setter.
 }

@@ -2,10 +2,13 @@ package com.example.financialhealth.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-// Consider adding validation annotations if spring-boot-starter-validation is present
-// import jakarta.validation.constraints.NotBlank;
-
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class RegisterRequest {
 
     @NotBlank(message = "Username cannot be blank.")
@@ -19,27 +22,5 @@ public class RegisterRequest {
     // For now, just length.
     private String password;
 
-    public RegisterRequest() {
-    }
-
-    public RegisterRequest(String username, String password) {
-        this.username = username;
-        this.password = password;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
+    // Manual getters, setters, and constructors are removed.
 }

@@ -5,7 +5,13 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import java.math.BigDecimal;
+import lombok.AllArgsConstructor; // Added
+import lombok.Data; // Added
+import lombok.NoArgsConstructor; // Added
 
+@Data // Lombok
+@NoArgsConstructor // Lombok
+@AllArgsConstructor // Lombok
 public class BudgetRequestDto {
 
     @NotNull(message = "Category ID cannot be null.")
@@ -22,47 +28,5 @@ public class BudgetRequestDto {
     @DecimalMin(value = "0.00", message = "Total monthly budget goal must be zero or positive.")
     private BigDecimal totalMonthlyBudgetGoal; // Optional
 
-    // Constructors
-    public BudgetRequestDto() {
-    }
-
-    public BudgetRequestDto(Long categoryId, BigDecimal allocatedAmount, String month, BigDecimal totalMonthlyBudgetGoal) {
-        this.categoryId = categoryId;
-        this.allocatedAmount = allocatedAmount;
-        this.month = month;
-        this.totalMonthlyBudgetGoal = totalMonthlyBudgetGoal;
-    }
-
-    // Getters and Setters
-    public Long getCategoryId() {
-        return categoryId;
-    }
-
-    public void setCategoryId(Long categoryId) {
-        this.categoryId = categoryId;
-    }
-
-    public BigDecimal getAllocatedAmount() {
-        return allocatedAmount;
-    }
-
-    public void setAllocatedAmount(BigDecimal allocatedAmount) {
-        this.allocatedAmount = allocatedAmount;
-    }
-
-    public String getMonth() {
-        return month;
-    }
-
-    public void setMonth(String month) {
-        this.month = month;
-    }
-
-    public BigDecimal getTotalMonthlyBudgetGoal() {
-        return totalMonthlyBudgetGoal;
-    }
-
-    public void setTotalMonthlyBudgetGoal(BigDecimal totalMonthlyBudgetGoal) {
-        this.totalMonthlyBudgetGoal = totalMonthlyBudgetGoal;
-    }
+    // Manual getters, setters, and constructors are removed.
 }

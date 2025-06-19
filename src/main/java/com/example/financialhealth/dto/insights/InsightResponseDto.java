@@ -1,20 +1,14 @@
 package com.example.financialhealth.dto.insights;
 
+import lombok.AllArgsConstructor; // Added
+import lombok.Data; // Added
+import lombok.NoArgsConstructor; // Added
+
+@Data // Lombok
+@NoArgsConstructor // Lombok
+@AllArgsConstructor // Lombok
 public class InsightResponseDto {
     private String adviceText;
 
-    public InsightResponseDto() {
-    }
-
-    public InsightResponseDto(String adviceText) {
-        this.adviceText = adviceText;
-    }
-
-    public String getAdviceText() {
-        return adviceText;
-    }
-
-    public void setAdviceText(String adviceText) {
-        this.adviceText = adviceText;
-    }
+    // Manual getters, setters, and constructors are removed.
 }

@@ -1,26 +1,19 @@
 package com.example.financialhealth.dto.insights;
 
-import io.swagger.v3.oas.annotations.media.Schema; // Added
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor; // Added
+import lombok.Data; // Added
+import lombok.NoArgsConstructor; // Added
 
+@Data // Lombok
+@NoArgsConstructor // Lombok
+@AllArgsConstructor // Lombok
 public class InsightRequestDto {
 
     @NotBlank(message = "User query cannot be blank.")
-    @Schema(description = "User's question or topic for financial advice.", example = "How can I save more money?") // Added
+    @Schema(description = "User's question or topic for financial advice.", example = "How can I save more money?")
     private String userQuery;
 
-    public InsightRequestDto() {
-    }
-
-    public InsightRequestDto(String userQuery) {
-        this.userQuery = userQuery;
-    }
-
-    public String getUserQuery() {
-        return userQuery;
-    }
-
-    public void setUserQuery(String userQuery) {
-        this.userQuery = userQuery;
-    }
+    // Manual getters, setters, and constructors are removed.
 }

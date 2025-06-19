@@ -1,20 +1,29 @@
 package com.example.financialhealth.model;
 
 import jakarta.persistence.*;
+import lombok.*; // Added
+import lombok.EqualsAndHashCode.Include; // Added
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.LocalDate;
-import java.util.Objects;
+// Removed java.util.Objects
 
+@Getter // Lombok
+@Setter // Lombok
+@NoArgsConstructor // Lombok
+@AllArgsConstructor // Lombok
+@EqualsAndHashCode(onlyExplicitlyIncluded = true) // Lombok
+@ToString(exclude = {"user"}) // Lombok
 @Entity
 @Table(name = "goals")
 public class Goal {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Include // For Lombok @EqualsAndHashCode
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -41,103 +50,13 @@ public class Goal {
     @Column(name = "updated_at", nullable = false)
     private Timestamp updatedAt;
 
-    // Constructors
-    public Goal() {
-    }
-
-    public Goal(User user, String goalName, BigDecimal targetAmount, LocalDate targetDate) {
-        this.user = user;
-        this.goalName = goalName;
-        this.targetAmount = targetAmount;
-        this.targetDate = targetDate;
-        this.currentAmount = BigDecimal.ZERO; // Initialize explicitly, though field default also does this
-    }
-
-    public Goal(User user, String goalName, BigDecimal targetAmount, BigDecimal currentAmount, LocalDate targetDate) {
-        this.user = user;
-        this.goalName = goalName;
-        this.targetAmount = targetAmount;
-        this.currentAmount = currentAmount;
-        this.targetDate = targetDate;
-    }
-
-
-    // Getters and Setters
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public String getGoalName() {
-        return goalName;
-    }
-
-    public void setGoalName(String goalName) {
-        this.goalName = goalName;
-    }
-
-    public BigDecimal getTargetAmount() {
-        return targetAmount;
-    }
-
-    public void setTargetAmount(BigDecimal targetAmount) {
-        this.targetAmount = targetAmount;
-    }
-
-    public BigDecimal getCurrentAmount() {
-        return currentAmount;
-    }
-
-    public void setCurrentAmount(BigDecimal currentAmount) {
-        this.currentAmount = currentAmount;
-    }
-
-    public LocalDate getTargetDate() {
-        return targetDate;
-    }
-
-    public void setTargetDate(LocalDate targetDate) {
-        this.targetDate = targetDate;
-    }
-
-    public Timestamp getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Timestamp createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Timestamp getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Timestamp updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    // equals and hashCode
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Goal goal = (Goal) o;
-        return Objects.equals(id, goal.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
+    // Manual constructors, getters, setters, equals, hashCode are removed.
+    // @AllArgsConstructor will cover the previous constructors.
+    // The constructor `public Goal(User user, String goalName, BigDecimal targetAmount, LocalDate targetDate)`
+    // where currentAmount was explicitly set to ZERO is effectively handled by @AllArgsConstructor
+    // because the field `currentAmount` is initialized to `BigDecimal.ZERO`.
+    // If an @AllArgsConstructor is generated, it will include all fields.
+    // If a constructor without `currentAmount` (expecting default) was desired,
+    // a custom constructor or @Builder might be options.
+    // For now, @AllArgsConstructor and the field default are fine.
 }

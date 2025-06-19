@@ -7,7 +7,14 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import io.swagger.v3.oas.annotations.media.Schema; // Added
+import lombok.AllArgsConstructor; // Added
+import lombok.Data; // Added
+import lombok.NoArgsConstructor; // Added
+
+@Data // Lombok
+@NoArgsConstructor // Lombok
+@AllArgsConstructor // Lombok
+public class GoalRequestDto {
 
     @NotBlank(message = "Goal name cannot be blank.")
     @Size(max = 255, message = "Goal name cannot exceed 255 characters.")
@@ -18,52 +25,10 @@ import io.swagger.v3.oas.annotations.media.Schema; // Added
     private BigDecimal targetAmount;
 
     @DecimalMin(value = "0.00", message = "Current amount must be zero or positive.")
-    private BigDecimal currentAmount; // Optional in request, service will default to 0 if null for new goals
+    private BigDecimal currentAmount; // Optional
 
     @FutureOrPresent(message = "Target date must be in the present or future.")
-    @Schema(description = "Target date to achieve the goal. Must be in the present or future.", example = "2025-12-31") // Added
     private LocalDate targetDate; // Optional
 
-    public GoalRequestDto() {
-    }
-
-    public GoalRequestDto(String goalName, BigDecimal targetAmount, BigDecimal currentAmount, LocalDate targetDate) {
-        this.goalName = goalName;
-        this.targetAmount = targetAmount;
-        this.currentAmount = currentAmount;
-        this.targetDate = targetDate;
-    }
-
-    // Getters and Setters
-    public String getGoalName() {
-        return goalName;
-    }
-
-    public void setGoalName(String goalName) {
-        this.goalName = goalName;
-    }
-
-    public BigDecimal getTargetAmount() {
-        return targetAmount;
-    }
-
-    public void setTargetAmount(BigDecimal targetAmount) {
-        this.targetAmount = targetAmount;
-    }
-
-    public BigDecimal getCurrentAmount() {
-        return currentAmount;
-    }
-
-    public void setCurrentAmount(BigDecimal currentAmount) {
-        this.currentAmount = currentAmount;
-    }
-
-    public LocalDate getTargetDate() {
-        return targetDate;
-    }
-
-    public void setTargetDate(LocalDate targetDate) {
-        this.targetDate = targetDate;
-    }
+    // Manual getters, setters, and constructors are removed.
 }

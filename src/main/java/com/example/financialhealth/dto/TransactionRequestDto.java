@@ -7,7 +7,10 @@ import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import io.swagger.v3.oas.annotations.media.Schema; // Added
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor; // Added
+import lombok.Data; // Added
+import lombok.NoArgsConstructor; // Added
 
 // For validation annotations (e.g., @NotNull, @NotBlank, @Size, @Positive, @PastOrPresent) to take effect,
 // ensure 'spring-boot-starter-validation' is included in your pom.xml:
@@ -17,6 +20,9 @@ import io.swagger.v3.oas.annotations.media.Schema; // Added
 // </dependency>
 // (This dependency has now been added to pom.xml)
 
+@Data // Lombok
+@NoArgsConstructor // Lombok
+@AllArgsConstructor // Lombok
 public class TransactionRequestDto {
 
     @NotBlank(message = "Transaction type cannot be blank. Must be INCOME or EXPENSE.")
@@ -37,58 +43,5 @@ public class TransactionRequestDto {
     @Size(max = 255, message = "Description cannot exceed 255 characters.")
     private String description;
 
-    public TransactionRequestDto() {
-    }
-
-    public TransactionRequestDto(String type, BigDecimal amount, Long categoryId, LocalDate transactionDate, String description) {
-        this.type = type;
-        this.amount = amount;
-        this.categoryId = categoryId;
-        this.transactionDate = transactionDate;
-        this.description = description;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public BigDecimal getAmount() {
-        return amount;
-    }
-
-    public void setAmount(BigDecimal amount) {
-        this.amount = amount;
-    }
-
-    // Removed getCategory() leftover method
-
-    // Removed getCategory() and setCategory(String)
-
-    public Long getCategoryId() {
-        return categoryId;
-    }
-
-    public void setCategoryId(Long categoryId) {
-        this.categoryId = categoryId;
-    }
-
-    public LocalDate getTransactionDate() {
-        return transactionDate;
-    }
-
-    public void setTransactionDate(LocalDate transactionDate) {
-        this.transactionDate = transactionDate;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
+    // Manual getters, setters, and constructors are removed.
 }

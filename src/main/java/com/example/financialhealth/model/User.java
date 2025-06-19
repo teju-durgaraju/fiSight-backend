@@ -1,6 +1,8 @@
 package com.example.financialhealth.model;
 
 import jakarta.persistence.*;
+import lombok.*; // Added
+import lombok.EqualsAndHashCode.Include; // Added
 import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -12,12 +14,19 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Getter // Lombok
+@Setter // Lombok
+@NoArgsConstructor // Lombok
+@AllArgsConstructor // Lombok
+@EqualsAndHashCode(onlyExplicitlyIncluded = true) // Lombok
+@ToString(exclude = {"passwordHash", "roles"}) // Lombok - excluded passwordHash from UserDetails, and roles
 @Entity
 @Table(name = "users")
 public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Include // For Lombok @EqualsAndHashCode
     private Long id;
 
     @Column(unique = true, nullable = false)
@@ -38,63 +47,29 @@ public class User implements UserDetails {
     )
     private Set<Role> roles = new HashSet<>();
 
-    public User() {
-    }
+    // Custom constructor if needed, e.g. for specific fields not covered by @AllArgsConstructor
+    // or if @AllArgsConstructor is too broad.
+    // For now, assuming @AllArgsConstructor is sufficient or this specific constructor is not critical.
+    // public User(String username, String passwordHash) {
+    //     this.username = username;
+    //     this.passwordHash = passwordHash;
+    // }
 
-    public User(String username, String passwordHash) {
-        this.username = username;
-        this.passwordHash = passwordHash;
-    }
+    // Manual Getters and Setters are removed as Lombok will generate them.
 
-    // Getters and Setters
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    @Override
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
+    // UserDetails methods - These must remain as they are specific implementations.
+    // Lombok does not override methods from implemented interfaces automatically unless they match specific patterns.
+    // @Override for getUsername() and getPassword() from UserDetails will be correctly handled by Lombok's @Getter
+    // if the field names match.
+    // `username` field matches `getUsername()`
+    // `passwordHash` field needs a `getPassword()` method for UserDetails. Lombok's @Getter on passwordHash generates getPasswordHash().
+    // So, we need to manually ensure getPassword() from UserDetails is correctly implemented.
 
     @Override
-    public String getPassword() {
-        return passwordHash;
+    public String getPassword() { // This manual method is crucial for UserDetails
+        return this.passwordHash;
     }
-
-    public String getPasswordHash() {
-        return passwordHash;
-    }
-
-    public void setPasswordHash(String passwordHash) {
-        this.passwordHash = passwordHash;
-    }
-
-    public Timestamp getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Timestamp createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Set<Role> getRoles() {
-        return roles;
-    }
-
-    public void setRoles(Set<Role> roles) {
-        this.roles = roles;
-    }
-
-    // UserDetails methods
+    // Note: @Getter on `username` field will generate `getUsername()` which matches UserDetails.
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -123,18 +98,5 @@ public class User implements UserDetails {
         return true;
     }
 
-    // hashCode and equals
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        User user = (User) o;
-        return Objects.equals(id, user.id) && Objects.equals(username, user.username);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, username);
-    }
+    // hashCode and equals are handled by Lombok's @EqualsAndHashCode(onlyExplicitlyIncluded = true) and @Include on id.
 }
