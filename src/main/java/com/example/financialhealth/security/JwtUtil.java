@@ -6,9 +6,10 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import com.example.financialhealth.config.JwtConfig; // Added
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
+// Removed: import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -27,24 +28,22 @@ public class JwtUtil {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtUtil.class);
 
-    private final String secretKeyString;
+    // Removed: private final String secretKeyString;
     private final Key signingKey;
 
     // EXPIRATION_TIME_MS can remain a static final long or be configurable too
     private static final long EXPIRATION_TIME_MS = 1000 * 60 * 60 * 10; // 10 hours
 
-    public JwtUtil(@Value("${jwt.secret}") String secretKeyString) {
-        if (secretKeyString == null || secretKeyString.isEmpty() || "DefaultSecretKeyPlaceholder_ChangeThisImmediately_0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".equals(secretKeyString)) {
-            logger.warn("WARNING: JWT Secret Key is using a default placeholder or is not configured. This is insecure and MUST be changed for production.");
-            // Consider throwing an exception in a production profile if the key isn't set properly,
-            // or if the default placeholder is detected.
-            // For example:
-            // if ("DefaultSecretKeyPlaceholder_ChangeThisImmediately_0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".equals(secretKeyString)) {
-            //     throw new IllegalArgumentException("CRITICAL: Default JWT secret key is in use. Application startup aborted for security reasons.");
-            // }
+    public JwtUtil(JwtConfig jwtConfig) { // Changed parameter from @Value String to JwtConfig
+        String secretKeyString = jwtConfig.getSecret();
+        if ("DefaultSecretKeyPlaceholder_ChangeThisImmediately_0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".equals(secretKeyString)) {
+            // Log a strong warning or consider throwing an exception in a production profile
+            // For now, a system error print for high visibility during development.
+            logger.error("CRITICAL WARNING: JWT Secret Key is using the default placeholder value. This is highly insecure and MUST be changed for any real deployment.");
+            // Optionally, in a 'prod' profile, you might throw new IllegalStateException("Cannot start with default JWT secret.");
         }
-        this.secretKeyString = secretKeyString;
-        byte[] keyBytes = this.secretKeyString.getBytes(StandardCharsets.UTF_8);
+        // this.secretKeyString = secretKeyString; // No longer need to store it as a field
+        byte[] keyBytes = secretKeyString.getBytes(StandardCharsets.UTF_8);
         this.signingKey = Keys.hmacShaKeyFor(keyBytes);
     }
 

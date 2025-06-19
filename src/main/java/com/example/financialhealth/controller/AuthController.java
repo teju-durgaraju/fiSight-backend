@@ -9,8 +9,9 @@ import com.example.financialhealth.repository.RoleRepository;
 import com.example.financialhealth.repository.UserRepository;
 import com.example.financialhealth.security.JwtUtil;
 import com.example.financialhealth.service.CustomUserDetailsService;
-import io.swagger.v3.oas.annotations.Operation; // Added
-import io.swagger.v3.oas.annotations.tags.Tag; // Added
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid; // Added
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -53,9 +54,9 @@ public class AuthController {
         this.userDetailsService = userDetailsService;
     }
 
-    @Operation(summary = "Register a new user", description = "Creates a new user account.") // Added
+    @Operation(summary = "Register a new user", description = "Creates a new user account.")
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody RegisterRequest registerRequest) {
+    public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterRequest registerRequest) { // Added @Valid
         if (userRepository.findByUsername(registerRequest.getUsername()).isPresent()) {
             return ResponseEntity.badRequest().body("Error: Username is already taken!");
         }
@@ -73,9 +74,9 @@ public class AuthController {
         return ResponseEntity.ok("User registered successfully!");
     }
 
-    @Operation(summary = "Authenticate a user", description = "Authenticates a user with username and password, and returns a JWT upon success.") // Added
+    @Operation(summary = "Authenticate a user", description = "Authenticates a user with username and password, and returns a JWT upon success.")
     @PostMapping("/login")
-    public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) { // Added @Valid
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword())

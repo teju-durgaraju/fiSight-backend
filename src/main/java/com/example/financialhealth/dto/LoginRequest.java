@@ -1,14 +1,16 @@
 package com.example.financialhealth.dto;
 
+import jakarta.validation.constraints.NotBlank;
+
 // Consider adding validation annotations if spring-boot-starter-validation is present
 // import jakarta.validation.constraints.NotBlank;
 
 public class LoginRequest {
 
-    // @NotBlank(message = "Username cannot be blank")
+    @NotBlank(message = "Username cannot be blank.")
     private String username;
 
-    // @NotBlank(message = "Password cannot be blank")
+    @NotBlank(message = "Password cannot be blank.")
     private String password;
 
     public LoginRequest() {
