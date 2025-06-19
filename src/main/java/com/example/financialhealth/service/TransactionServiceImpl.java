@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.Collections; // Added
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
