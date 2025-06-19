@@ -5,6 +5,8 @@ import com.example.financialhealth.model.Transaction;
 import com.example.financialhealth.model.User;
 import com.example.financialhealth.model.enums.TransactionType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query; // Added
+import org.springframework.data.repository.query.Param; // Added
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -26,5 +28,12 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 
     List<Transaction> findByUserAndCategoryAndTypeAndTransactionDateBetween( // Changed from String category
             User user, Category category, TransactionType type, LocalDate startDate, LocalDate endDate
+    );
+
+    @Query("SELECT t FROM Transaction t JOIN FETCH t.category WHERE t.user = :user AND t.transactionDate BETWEEN :startDate AND :endDate ORDER BY t.transactionDate DESC")
+    List<Transaction> findByUserAndTransactionDateBetweenWithCategory(
+        @Param("user") User user,
+        @Param("startDate") LocalDate startDate,
+        @Param("endDate") LocalDate endDate
     );
 }

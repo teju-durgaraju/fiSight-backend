@@ -73,7 +73,8 @@ public class FinancialInsightServiceImpl implements FinancialInsightService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
 
-        List<Transaction> transactions = transactionRepository.findByUserAndTransactionDateBetween(user, startDate, endDate);
+        // Use the new method with JOIN FETCH
+        List<Transaction> transactions = transactionRepository.findByUserAndTransactionDateBetweenWithCategory(user, startDate, endDate);
 
         BigDecimal totalIncome = BigDecimal.ZERO;
         BigDecimal totalExpenses = BigDecimal.ZERO;
@@ -84,7 +85,14 @@ public class FinancialInsightServiceImpl implements FinancialInsightService {
                 totalIncome = totalIncome.add(t.getAmount());
             } else if (t.getType() == TransactionType.EXPENSE) {
                 totalExpenses = totalExpenses.add(t.getAmount());
-                spendingByCategoryMap.merge(t.getCategory(), t.getAmount(), BigDecimal::add);
+                // Ensure category is not null before getting its name
+                if (t.getCategory() != null && t.getCategory().getName() != null) {
+                    spendingByCategoryMap.merge(t.getCategory().getName(), t.getAmount(), BigDecimal::add);
+                } else {
+                    // Handle cases where category might be unexpectedly null, though schema says it's not optional
+                    logger.warn("Transaction with id {} has a null category or category name.", t.getId());
+                    spendingByCategoryMap.merge("Uncategorized", t.getAmount(), BigDecimal::add);
+                }
             }
         }
 
@@ -107,7 +115,8 @@ public class FinancialInsightServiceImpl implements FinancialInsightService {
         // Fetch financial data
         LocalDate transactionsEndDate = LocalDate.now();
         LocalDate transactionsStartDate = transactionsEndDate.minusDays(60);
-        List<Transaction> recentTransactions = transactionRepository.findByUserAndTransactionDateBetween(user, transactionsStartDate, transactionsEndDate);
+        // Use the new method with JOIN FETCH
+        List<Transaction> recentTransactions = transactionRepository.findByUserAndTransactionDateBetweenWithCategory(user, transactionsStartDate, transactionsEndDate);
 
         String currentMonthStr = YearMonth.now().toString(); // YYYY-MM
         List<Budget> currentBudgets = budgetRepository.findByUserAndMonthOrderByCategoryAsc(user, currentMonthStr);
@@ -136,8 +145,11 @@ public class FinancialInsightServiceImpl implements FinancialInsightService {
             promptBuilder.append("- No budgets set for the current month (").append(currentMonthStr).append(").\n");
         } else {
             promptBuilder.append("- Budgets for ").append(currentMonthStr).append(":\n");
-            currentBudgets.forEach(b -> promptBuilder.append("  - Category '").append(b.getCategory())
-                                 .append("': Allocated $").append(b.getAllocatedAmount()).append(".\n"));
+            currentBudgets.forEach(b -> {
+                String categoryName = (b.getCategory() != null && b.getCategory().getName() != null) ? b.getCategory().getName() : "Uncategorized";
+                promptBuilder.append("  - Category '").append(categoryName)
+                             .append("': Allocated $").append(b.getAllocatedAmount()).append(".\n");
+            });
         }
 
         // Goals Summary
