@@ -4,9 +4,9 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
-import io.swagger.v3.oas.annotations.media.Schema; // Added
+
+public class BudgetRequestDto {
 
     @NotNull(message = "Category ID cannot be null.")
     private Long categoryId;
@@ -17,12 +17,12 @@ import io.swagger.v3.oas.annotations.media.Schema; // Added
 
     @NotBlank(message = "Month cannot be blank.")
     @Pattern(regexp = "^\\d{4}-(0[1-9]|1[0-2])$", message = "Month must be in YYYY-MM format.")
-    @Schema(description = "Month for the budget in YYYY-MM format.", example = "2024-07") // Added
-    private String month; // YYYY-MM format
+    private String month;
 
     @DecimalMin(value = "0.00", message = "Total monthly budget goal must be zero or positive.")
     private BigDecimal totalMonthlyBudgetGoal; // Optional
 
+    // Constructors
     public BudgetRequestDto() {
     }
 
